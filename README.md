@@ -1,5 +1,5 @@
-# Self-Organization of Robots in a Hostile Environment
-**Group 28 — MAS 2025-2026**  
+# SMA: self-organisation of robots in a hostile environment
+**Group 28**  
 Colin Frisch, Marie Leduc, Mourad Hammale
 
 > Robots navigate a radioactive grid, collect dangerous waste through a three-stage transformation pipeline, and deposit it in a secure disposal zone. The global solution comes from local behaviours, as the robots do not have a global view of the environment.
