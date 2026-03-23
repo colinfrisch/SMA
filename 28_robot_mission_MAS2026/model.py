@@ -2,6 +2,8 @@
 # Date: 16/03/2026
 # Members: FRISCH Colin, LEDUC Marie, HAMMALE Mourad
 
+import threading
+
 from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
@@ -57,6 +59,7 @@ class RobotMission(Model):
         self._setup_initial_waste(n_green_waste)
         self._setup_robots()
 
+        self._collect_lock = threading.Lock()
         self.datacollector = DataCollector(
             model_reporters={
                 "Green Waste": lambda m: m._count_waste("green"),
@@ -64,6 +67,23 @@ class RobotMission(Model):
                 "Red Waste": lambda m: m._count_waste("red"),
             }
         )
+
+        # Make collect() and get_model_vars_dataframe() thread-safe so that
+        # Solara's render thread cannot read a partially-appended model_vars dict.
+        _lock = self._collect_lock
+        _original_collect = self.datacollector.collect
+        _original_get_df = self.datacollector.get_model_vars_dataframe
+
+        def _safe_collect(model):
+            with _lock:
+                _original_collect(model)
+
+        def _safe_get_df():
+            with _lock:
+                return _original_get_df()
+
+        self.datacollector.collect = _safe_collect
+        self.datacollector.get_model_vars_dataframe = _safe_get_df
 
     # _-------------------Helpers for model setup-------------------
     def _setup_radioactivity(self):
@@ -230,7 +250,7 @@ class RobotMission(Model):
 
     # ---------------------Scheduler step-------------------
     def step(self):
-        self.datacollector.collect(self)
         # Only robot agents need to act, passive objects (Radioactivity, Waste, WasteDisposalZone) have no behaviour
         for robot_type in (GreenAgent, YellowAgent, RedAgent):
             self.agents_by_type[robot_type].shuffle_do("step")
+        self.datacollector.collect(self)

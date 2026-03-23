@@ -54,6 +54,6 @@ class Waste(Agent):
         super().__init__(model)
         assert waste_type in ("green", "yellow", "red"), f"Unknown waste type: {waste_type}"
         self.waste_type = waste_type
-
     def step(self):
         pass
+
