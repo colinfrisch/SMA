@@ -10,9 +10,9 @@ class Radioactivity(Agent):
     """
     Passive agent placed on every cell of the grid.
     Holds a radioactivity level sampled uniformly from the zone range:
-      z1 -> [0.00, 0.33)   low
-      z2 -> [0.33, 0.66)   medium
-      z3 -> [0.66, 1.00]   high
+      z1 -> [0.00, 0.33) low
+      z2 -> [0.33, 0.66) medium
+      z3 -> [0.66, 1.00] high
     Robot agents read this value to know which zone they are in.
     """
 

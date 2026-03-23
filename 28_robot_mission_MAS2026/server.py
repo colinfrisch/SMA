@@ -11,19 +11,13 @@ from model import RobotMission
 from agents import GreenAgent, YellowAgent, RedAgent
 from objects import Radioactivity, Waste, WasteDisposalZone
 
-# ---------------------------------------------------------------------------
-# Grid dimensions (must match model defaults)
-# ---------------------------------------------------------------------------
+# ---------------------Grid dimensions---------------------
 WIDTH = 30
 HEIGHT = 10
 
-
-# ---------------------------------------------------------------------------
-# Portrayal function
-# ---------------------------------------------------------------------------
-
+# ---------------------Portrayal function for agents---------------------
 def agent_portrayal(agent):
-    # Radioactivity agents are invisible – zones are drawn by post_process.
+    # Radioactivity agents are invisible and zones are drawn by post_process.
     if isinstance(agent, Radioactivity):
         return AgentPortrayalStyle(
             color="white", size=0, alpha=0, zorder=1
@@ -82,10 +76,7 @@ def agent_portrayal(agent):
     return AgentPortrayalStyle(color="white", size=0, alpha=0, zorder=1)
 
 
-# ---------------------------------------------------------------------------
-# Post-process: draw zone background colours on the matplotlib Axes
-# ---------------------------------------------------------------------------
-
+# ---------------------Post-processing function to draw zone backgrounds-------------------
 def draw_zone_backgrounds(ax):
     z1_max = WIDTH // 3
     z2_max = 2 * (WIDTH // 3)
@@ -102,10 +93,7 @@ def draw_zone_backgrounds(ax):
     ax.legend(handles=legend_patches, loc="upper left", fontsize=7)
 
 
-# ---------------------------------------------------------------------------
-# Space component + plot component
-# ---------------------------------------------------------------------------
-
+# ----------------------Space and plot components---------------------
 space_component = make_space_component(
     agent_portrayal,
     post_process=draw_zone_backgrounds,
@@ -115,10 +103,7 @@ plot_component = make_plot_component(
     {"Green Waste": "#00cc44", "Yellow Waste": "#ffdd00", "Red Waste": "#ff3300"},
 )
 
-# ---------------------------------------------------------------------------
-# Interactive model parameters
-# ---------------------------------------------------------------------------
-
+# -----------------------Interactive model parameters---------------------
 model_params = {
     "n_green": {
         "type": "SliderInt",
@@ -156,10 +141,8 @@ model_params = {
     "height": HEIGHT,
 }
 
-# ---------------------------------------------------------------------------
-# SolaraViz page  >>>  run with:  solara run server.py <<<
-# ---------------------------------------------------------------------------
-
+# ------------------------Server run---------------------
+# run with solara run server.py
 model = RobotMission()
 
 page = SolaraViz(

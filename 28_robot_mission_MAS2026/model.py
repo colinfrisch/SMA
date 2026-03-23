@@ -12,18 +12,18 @@ from objects import Radioactivity, Waste, WasteDisposalZone
 
 class RobotMission(Model):
     """
-    RobotMission model.
+    RobotMission model
 
     The grid is divided west-to-east into three zones of equal width:
-      z1  [0,       z1_max) : low radioactivity, contains initial green waste
-      z2  [z1_max,  z2_max): medium radioactivity
-      z3  [z2_max,  width) : high radioactivity, waste disposal zone located here
+      z1  [0, z1_max) : low radioactivity, contains initial green waste
+      z2  [z1_max, z2_max): medium radioactivity
+      z3  [z2_max, width) : high radioactivity, waste disposal zone located here
 
     Parameters
     ----------
-    n_green       : number of green robots
-    n_yellow      : number of yellow robots
-    n_red         : number of red robots
+    n_green : number of green robots
+    n_yellow : number of yellow robots
+    n_red : number of red robots
     n_green_waste : number of green waste items placed at initialisation
     width, height : grid dimensions
     """
@@ -65,10 +65,7 @@ class RobotMission(Model):
             }
         )
 
-    # ------------------------------------------------------------------
-    # Setup helpers
-    # ------------------------------------------------------------------
-
+    # _-------------------Helpers for model setup-------------------
     def _setup_radioactivity(self):
         """Place one Radioactivity agent on every cell."""
         for x in range(self.width):
@@ -118,10 +115,7 @@ class RobotMission(Model):
             agent = RedAgent(self)
             self.grid.place_agent(agent, (x, y))
 
-    # ------------------------------------------------------------------
-    # Action execution
-    # ------------------------------------------------------------------
-
+    # -------------------Action Execution-------------------
     def do(self, agent, action: dict) -> dict:
         """
         Execute the action chosen by `agent` and return updated percepts.
@@ -193,10 +187,7 @@ class RobotMission(Model):
 
         return self._get_percepts(agent)
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
-
+    # --------------------Helpers for agent decision-making-------------------
     def _get_new_pos(self, pos: tuple, direction: str):
         """Return the grid position one step in `direction` from `pos`."""
         x, y = pos
@@ -219,7 +210,7 @@ class RobotMission(Model):
 
     def _get_percepts(self, agent) -> dict:
         """
-        Return a dict mapping each adjacent position (Von Neumann + centre)
+        Return a dict mapping each adjacent position (Von Neumann and centre)
         to the list of agent objects present there.
         """
         neighborhood = self.grid.get_neighborhood(
@@ -231,19 +222,15 @@ class RobotMission(Model):
         }
 
     def _count_waste(self, waste_type: str) -> int:
-        """Count waste of `waste_type` that is on the grid (not carried, not orphaned)."""
+        """Count waste of `waste_type` that is on the grid (not carried, not alone) """
         return sum(
             1 for a in self.agents
             if isinstance(a, Waste) and a.waste_type == waste_type and a.pos is not None
         )
 
-    # ------------------------------------------------------------------
-    # Scheduler step  (Mesa 3.x: use AgentSet instead of RandomActivation)
-    # ------------------------------------------------------------------
-
+    # ---------------------Scheduler step-------------------
     def step(self):
         self.datacollector.collect(self)
-        # Only robot agents need to act; passive objects (Radioactivity, Waste,
-        # WasteDisposalZone) have no behaviour.
+        # Only robot agents need to act, passive objects (Radioactivity, Waste, WasteDisposalZone) have no behaviour
         for robot_type in (GreenAgent, YellowAgent, RedAgent):
             self.agents_by_type[robot_type].shuffle_do("step")

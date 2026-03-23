@@ -11,11 +11,11 @@ class RobotAgent(Agent):
     Abstract base class for all robot agents.
 
     Each concrete subclass must implement:
-      - percepts()  -> dict  : observe the environment via self.model
-      - deliberate(knowledge) -> action dict : decide next action from knowledge
+      percepts()  -> dict  : observe the environment via self.model
+      deliberate(knowledge) -> action dict : decide next action from knowledge
 
     The agent loop is:
-        percepts  ->  update knowledge  ->  deliberate  ->  do  (via model)
+      percepts  ->  update knowledge  ->  deliberate  ->  action   
     """
 
     # Subclasses override this to declare which zones they may enter (1-indexed).
@@ -23,16 +23,15 @@ class RobotAgent(Agent):
 
     def __init__(self, model):
         super().__init__(model)
-        # knowledge is the agent's private belief state -> deliberate() ONLY reads from this dict
+        # knowledge is the agent's private belief state
         self.knowledge: dict = {
             "pos": None,
-            "carried_waste": [],   # list of Waste objects currently held
-            "percepts": {},        # last percepts snapshot
+            "carried_waste": [], # list of waste objects currently held
+            "percepts": {}, # last percepts snapshot
         }
 
-    # ------------------------------------------------------------------
-    # Core agent loop  (called by Mesa scheduler each tick)
-    # ------------------------------------------------------------------
+
+    # ===================Core agent loop==================
 
     def step_agent(self):
         """
@@ -52,13 +51,10 @@ class RobotAgent(Agent):
     def step(self):
         self.step_agent()
 
-    # ------------------------------------------------------------------
-    # Methods to implement in subclasses
-    # ------------------------------------------------------------------
-
+    # Methods implemented in subclasses
     @staticmethod
     def _direction_toward(from_pos, to_pos):
-        """Return a cardinal direction string from from_pos toward to_pos."""
+        """Return a cardinal direction string from "from_pos" toward "to_pos" (e.g. "north", "south", "east", "west")"""
         dx = to_pos[0] - from_pos[0]
         dy = to_pos[1] - from_pos[1]
         if abs(dx) >= abs(dy):
@@ -78,7 +74,7 @@ class RobotAgent(Agent):
     def deliberate(self, knowledge: dict) -> dict:
         """
         Decide the next action based solely on `knowledge`.
-        Must NOT access any variable outside its argument.
+        Should NOT access any variable outside its argument.
 
         Possible actions (dict with a "type" key):
           {"type": "move",      "direction": "north"|"south"|"east"|"west"}
@@ -90,16 +86,13 @@ class RobotAgent(Agent):
         raise NotImplementedError
 
 
-# ---------------------------------------------------------------------------
-# Green Robot
-# ---------------------------------------------------------------------------
-
+#---------------Green Robot----------------
 class GreenAgent(RobotAgent):
     """
-    Green robot – restricted to zone z1.
+    Green robot, entirely restricted to zone z1.
 
     Behaviour:
-      1. Wander z1 collecting green waste (picks up up to 2).
+      1. Wander z1 collecting green waste (picking up up to 2).
       2. Once carrying 2 green wastes -> transform into 1 yellow waste.
       3. Transport the yellow waste as far east as possible (z1 boundary),
          then put it down for a yellow robot to collect.
@@ -129,23 +122,23 @@ class GreenAgent(RobotAgent):
         green_carried = [w for w in carried if w.waste_type == "green"]
         yellow_carried = [w for w in carried if w.waste_type == "yellow"]
 
-        # 1. Two greens -> transform
+        # Two greens: transform
         if len(green_carried) >= 2:
             return {"type": "transform"}
 
-        # 2. Carrying yellow (result of transform) -> deliver east toward z1 border
+        # Carrying yellow (after transform): deliver east toward z1 border
         if yellow_carried:
             x, y = pos
             if x < self.model.z1_max - 1:
                 return {"type": "move", "direction": "east"}
             return {"type": "put_down", "waste": yellow_carried[0]}
 
-        # 3. Try to pick up green waste on current cell
+        # Try to pick up green waste on current cell
         for obj in percepts.get(pos, []):
             if hasattr(obj, "waste_type") and obj.waste_type == "green":
                 return {"type": "pick_up", "waste": obj}
 
-        # 4. Move toward green waste visible on an adjacent cell
+        # Move toward green waste visible on an adjacent cell
         for cell_pos, contents in percepts.items():
             if cell_pos == pos:
                 continue
@@ -153,17 +146,14 @@ class GreenAgent(RobotAgent):
                 if hasattr(obj, "waste_type") and obj.waste_type == "green":
                     return {"type": "move", "direction": self._direction_toward(pos, cell_pos)}
 
-        # 5. Random walk
+        # Random walk
         return {"type": "move", "direction": self.random.choice(["north", "south", "east", "west"])}
 
 
-# ---------------------------------------------------------------------------
-# Yellow Robot
-# ---------------------------------------------------------------------------
-
+# -------------------Yellow Robot----------------
 class YellowAgent(RobotAgent):
     """
-    Yellow robot – can move in zones z1 and z2.
+    Yellow robot, can move in zones z1 and z2.
 
     Behaviour:
       1. Collect up to 2 yellow wastes (may also pick up yellow waste left by
@@ -196,23 +186,23 @@ class YellowAgent(RobotAgent):
         yellow_carried = [w for w in carried if w.waste_type == "yellow"]
         red_carried = [w for w in carried if w.waste_type == "red"]
 
-        # 1. Two yellows -> transform
+        # Two yellows: transform
         if len(yellow_carried) >= 2:
             return {"type": "transform"}
 
-        # 2. Carrying red (result of transform) -> deliver east toward z2 border
+        # Carrying red (result of transform): deliver east toward z2 border
         if red_carried:
             x, y = pos
             if x < self.model.z2_max - 1:
                 return {"type": "move", "direction": "east"}
             return {"type": "put_down", "waste": red_carried[0]}
 
-        # 3. Try to pick up yellow waste on current cell
+        # Try to pick up yellow waste on current cell
         for obj in percepts.get(pos, []):
             if hasattr(obj, "waste_type") and obj.waste_type == "yellow":
                 return {"type": "pick_up", "waste": obj}
 
-        # 4. Move toward yellow waste visible on an adjacent cell
+        # Move toward yellow waste visible on an adjacent cell
         for cell_pos, contents in percepts.items():
             if cell_pos == pos:
                 continue
@@ -220,14 +210,11 @@ class YellowAgent(RobotAgent):
                 if hasattr(obj, "waste_type") and obj.waste_type == "yellow":
                     return {"type": "move", "direction": self._direction_toward(pos, cell_pos)}
 
-        # 5. Random walk
+        # Random walk
         return {"type": "move", "direction": self.random.choice(["north", "south", "east", "west"])}
 
 
-# ---------------------------------------------------------------------------
-# Red Robot
-# ---------------------------------------------------------------------------
-
+# --------------------Red Robot----------------
 class RedAgent(RobotAgent):
     """
     Red robot – can move across all zones z1, z2, z3.
@@ -260,19 +247,19 @@ class RedAgent(RobotAgent):
 
         red_carried = [w for w in carried if w.waste_type == "red"]
 
-        # 1. Carrying red waste -> navigate to disposal and put down
+        # Carrying red waste: navigate to disposal and put down
         if red_carried:
             disposal_pos = self.model.waste_disposal_pos
             if pos == disposal_pos:
                 return {"type": "put_down", "waste": red_carried[0]}
             return {"type": "move", "direction": self._direction_toward(pos, disposal_pos)}
 
-        # 2. Try to pick up red waste on current cell
+        # Try to pick up red waste on current cell
         for obj in percepts.get(pos, []):
             if hasattr(obj, "waste_type") and obj.waste_type == "red":
                 return {"type": "pick_up", "waste": obj}
 
-        # 3. Move toward red waste visible on an adjacent cell
+        # Move toward red waste visible on an adjacent cell
         for cell_pos, contents in percepts.items():
             if cell_pos == pos:
                 continue
@@ -280,5 +267,5 @@ class RedAgent(RobotAgent):
                 if hasattr(obj, "waste_type") and obj.waste_type == "red":
                     return {"type": "move", "direction": self._direction_toward(pos, cell_pos)}
 
-        # 4. Random walk
+        # Random walk
         return {"type": "move", "direction": self.random.choice(["north", "south", "east", "west"])}

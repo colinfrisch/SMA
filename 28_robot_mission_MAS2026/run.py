@@ -30,6 +30,4 @@ if __name__ == "__main__":
         color={"Green Waste": "#00cc44", "Yellow Waste": "#ffdd00", "Red Waste": "#ff3300"},
     )
     plt.tight_layout()
-    #plt.savefig("waste_over_time.png")
     plt.show()
-    #print("Chart saved to waste_over_time.png")
