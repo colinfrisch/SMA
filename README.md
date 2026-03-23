@@ -30,16 +30,14 @@ solara run server.py
 
 The interactive interface shows sliders for number of green / yellow / red robots and initial waste count (green, yellow and red)
 
----
 
 ## Evaluation
 
 We track two metrics: 
 
-1. **Collection time**: number of simulation steps until all waste items reach the disposal zone. The lower the collection time, the better. 
-2. **Messages-per-disposal**: total messages broadcast divided by waste items disposed. This captures the cost of coordination, which is an important constraint in robotic networks.
+1. Collection time: number of simulation steps until all waste items reach the disposal zone. The lower the collection time, the better. 
+2. Messages-per-disposal: total messages broadcast divided by waste items disposed. This captures the cost of coordination, which is an important constraint in robotic networks.
 
----
 
 ## Overall functionning of the system
 
@@ -83,7 +81,6 @@ flowchart LR
 
 Mesa `shuffle_do("step")` is called per robot type each tick (Green, then Yellow, then Red). Shuffling within each type avoids systematic bias while keeping type-order consistent with the dependencies (green must produce yellow before yellow can collect it for example).
 
----
 
 ## Agent Architecture
 
@@ -184,7 +181,6 @@ GreenAgent          YellowAgent
      |                   |-- move toward nearest known_yellow
 ```
 
----
 
 ## Results
 
