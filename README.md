@@ -36,8 +36,8 @@ The interactive interface shows sliders for number of green / yellow / red robot
 
 We track two metrics: 
 
-1. **Collection time**: number of simulation steps until all waste items reach the disposal zone. The lower the collection time, the better. 
-2. **Messages-per-disposal**: total messages broadcast divided by waste items disposed. This captures the cost of coordination, which is an important constraint in robotic networks.
+1. *Collection time*: number of simulation steps until all waste items reach the disposal zone. The lower the collection time, the better. 
+2. *Messages-per-disposal*: total messages broadcast divided by waste items disposed. This captures the cost of coordination, which is an important constraint in robotic networks.
 
 ---
 
@@ -85,9 +85,9 @@ Mesa `shuffle_do("step")` is called per robot type each tick (Green, then Yellow
 
 ---
 
-## Agent Architecture
+## Agent architecture
 
-### Agent type: Cognitive
+### Agent type: cognitive
 
 | Property | Our robots |
 |---|---|
@@ -129,7 +129,7 @@ Agents are cognitive instead of reactive: they have to remember which waste they
 
 ---
 
-## Environment Properties
+## Environment properties
 
 | Property | Value | Justification |
 |---|---|---|
@@ -143,7 +143,7 @@ Agents are cognitive instead of reactive: they have to remember which waste they
 
 ---
 
-## Interaction & Communication
+## Interaction and communication
 
 ### Step 1 (already implemented): indirect interaction
 
@@ -201,7 +201,7 @@ Increasing robot counts reduces collection time sub-linearly (diminishing return
 
 ---
 
-## Conceptual Choices & Justifications
+## Conceptual choices and justifications
 
 | Choice | Justification |
 |---|---|
@@ -214,7 +214,7 @@ Increasing robot counts reduces collection time sub-linearly (diminishing return
 
 ---
 
-## File Structure
+## File structure
 
 ```
 28_robot_mission_MAS2026/
