@@ -27,6 +27,8 @@ class RobotMission(Model):
     n_yellow : number of yellow robots
     n_red : number of red robots
     n_green_waste : number of green waste items placed at initialisation
+    n_yellow_waste : number of yellow waste items placed at initialisation
+    n_red_waste : number of red waste items placed at initialisation
     width, height : grid dimensions
     """
 
@@ -36,6 +38,8 @@ class RobotMission(Model):
         n_yellow: int = 3,
         n_red: int = 3,
         n_green_waste: int = 10,
+        n_yellow_waste: int = 0,
+        n_red_waste: int = 0,
         width: int = 30,
         height: int = 10,
         seed=None,
@@ -57,6 +61,8 @@ class RobotMission(Model):
         self._setup_radioactivity()
         self._setup_waste_disposal_zone()
         self._setup_initial_waste(n_green_waste)
+        self._setup_initial_yellow_waste(n_yellow_waste)
+        self._setup_initial_red_waste(n_red_waste)
         self._setup_robots()
 
         self._collect_lock = threading.Lock()
@@ -113,6 +119,22 @@ class RobotMission(Model):
             x = self.random.randrange(self.z1_max)
             y = self.random.randrange(self.height)
             waste = Waste(self, "green")
+            self.grid.place_agent(waste, (x, y))
+
+    def _setup_initial_yellow_waste(self, n_yellow_waste: int):
+        """Scatter yellow waste randomly across zones z1 and z2."""
+        for _ in range(n_yellow_waste):
+            x = self.random.randrange(self.z2_max)
+            y = self.random.randrange(self.height)
+            waste = Waste(self, "yellow")
+            self.grid.place_agent(waste, (x, y))
+
+    def _setup_initial_red_waste(self, n_red_waste: int):
+        """Scatter red waste randomly across zones z1, z2, and z3."""
+        for _ in range(n_red_waste):
+            x = self.random.randrange(self.width)
+            y = self.random.randrange(self.height)
+            waste = Waste(self, "red")
             self.grid.place_agent(waste, (x, y))
 
     def _setup_robots(self):

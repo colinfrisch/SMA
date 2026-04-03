@@ -228,6 +228,6 @@ Increasing robot counts reduces collection time sub-linearly (diminishing return
 | Step | Status | Description |
 |---|---|---|
 | Step 1: No communication | Completed | All agent types, transformation pipeline, random-walk fallback, visualization, data collection |
-| Step 2: Additionnal waste | Planned | New transformation pipeline and data collection |
+| Step 2: Additional waste | Completed | Yellow and red waste initialization via UI sliders, placement respects robot zones |
 | Step 3: Direct messaging | Planned | INFORM/REQUEST protocol, communication range, message-count metric |
 | Step 4: Uncertainties | Pending | TBA per subject |
