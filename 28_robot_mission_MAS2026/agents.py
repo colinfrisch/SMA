@@ -1,6 +1,4 @@
-# Group: 28
-# Date: 16/03/2026
-# Members: FRISCH Colin, LEDUC Marie, HAMMALE Mourad
+"""Definition of robot agent classes with decision logic"""
 
 from mesa import Agent
 from abc import abstractmethod
@@ -28,6 +26,7 @@ class RobotAgent(Agent):
             "pos": None,
             "carried_waste": [], # list of waste objects currently held
             "percepts": {}, # last percepts snapshot
+            "known_targets": {"yellow": [], "red": []}, # positions of waste from messages
         }
 
 
@@ -131,7 +130,10 @@ class GreenAgent(RobotAgent):
             x, y = pos
             if x < self.model.z1_max - 1:
                 return {"type": "move", "direction": "east"}
-            return {"type": "put_down", "waste": yellow_carried[0]}
+            # Broadcast message when dropping yellow waste
+            action = {"type": "put_down", "waste": yellow_carried[0]}
+            self.model.broadcast_message(self, "yellow_waste_at", pos, YellowAgent)
+            return action
 
         # Try to pick up green waste on current cell
         for obj in percepts.get(pos, []):
@@ -182,6 +184,7 @@ class YellowAgent(RobotAgent):
         carried = knowledge.get("carried_waste", [])
         pos = knowledge.get("pos")
         percepts = knowledge.get("percepts", {})
+        known_targets = knowledge.get("known_targets", {})
 
         yellow_carried = [w for w in carried if w.waste_type == "yellow"]
         red_carried = [w for w in carried if w.waste_type == "red"]
@@ -195,7 +198,10 @@ class YellowAgent(RobotAgent):
             x, y = pos
             if x < self.model.z2_max - 1:
                 return {"type": "move", "direction": "east"}
-            return {"type": "put_down", "waste": red_carried[0]}
+            # Broadcast message when dropping red waste
+            action = {"type": "put_down", "waste": red_carried[0]}
+            self.model.broadcast_message(self, "red_waste_at", pos, RedAgent)
+            return action
 
         # Try to pick up yellow waste on current cell
         for obj in percepts.get(pos, []):
@@ -209,6 +215,12 @@ class YellowAgent(RobotAgent):
             for obj in contents:
                 if hasattr(obj, "waste_type") and obj.waste_type == "yellow":
                     return {"type": "move", "direction": self._direction_toward(pos, cell_pos)}
+
+        # Move toward known yellow waste from messages
+        known_yellow = known_targets.get("yellow", [])
+        if known_yellow:
+            target = known_yellow[0]
+            return {"type": "move", "direction": self._direction_toward(pos, target)}
 
         # Random walk
         return {"type": "move", "direction": self.random.choice(["north", "south", "east", "west"])}
@@ -244,6 +256,7 @@ class RedAgent(RobotAgent):
         carried = knowledge.get("carried_waste", [])
         pos = knowledge.get("pos")
         percepts = knowledge.get("percepts", {})
+        known_targets = knowledge.get("known_targets", {})
 
         red_carried = [w for w in carried if w.waste_type == "red"]
 
@@ -257,6 +270,8 @@ class RedAgent(RobotAgent):
         # Try to pick up red waste on current cell
         for obj in percepts.get(pos, []):
             if hasattr(obj, "waste_type") and obj.waste_type == "red":
+                # Send REQUEST message to claim target
+                self.model.broadcast_message(self, "claim_target", pos, RedAgent)
                 return {"type": "pick_up", "waste": obj}
 
         # Move toward red waste visible on an adjacent cell
@@ -266,6 +281,12 @@ class RedAgent(RobotAgent):
             for obj in contents:
                 if hasattr(obj, "waste_type") and obj.waste_type == "red":
                     return {"type": "move", "direction": self._direction_toward(pos, cell_pos)}
+
+        # Move toward known red waste from messages
+        known_red = known_targets.get("red", [])
+        if known_red:
+            target = known_red[0]
+            return {"type": "move", "direction": self._direction_toward(pos, target)}
 
         # Random walk
         return {"type": "move", "direction": self.random.choice(["north", "south", "east", "west"])}

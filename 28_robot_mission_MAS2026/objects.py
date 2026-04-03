@@ -1,6 +1,4 @@
-# Group: 28
-# Date: 16/03/2026
-# Members: FRISCH Colin, LEDUC Marie, HAMMALE Mourad
+"""Definition of passive agent types that have no decision logic"""
 
 import random
 from mesa import Agent
