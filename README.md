@@ -140,7 +140,7 @@ Agents are cognitive instead of reactive: they have to remember which waste they
 
 ---
 
-## Interaction and communication
+## Steps
 
 ### Step 1 (already implemented): indirect interaction
 
