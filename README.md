@@ -155,7 +155,7 @@ This is technically a mini-blackboard pattern because each grid cell acts as a l
 
 Instead of only having initial *green* waste, there will also be an option to begin with yellow and red waste as well. 
 
-### Step 3 (currently being implemented): direct messaging
+### Step 3 : direct messaging
 
 To reduce collection time, robots will exchange targeted messages when depositing waste:
 
@@ -229,5 +229,5 @@ Increasing robot counts reduces collection time sub-linearly (diminishing return
 |---|---|---|
 | Step 1: No communication | Completed | All agent types, transformation pipeline, random-walk fallback, visualization, data collection |
 | Step 2: Additional waste | Completed | Yellow and red waste initialization via UI sliders, placement respects robot zones |
-| Step 3: Direct messaging | Planned | INFORM/REQUEST protocol, communication range, message-count metric |
+| Step 3: Direct messaging | Completed | INFORM/REQUEST protocol, configurable communication range, `messages_per_disposal` metric tracked |
 | Step 4: Uncertainties | Pending | TBA per subject |
