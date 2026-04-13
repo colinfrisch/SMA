@@ -1,4 +1,0 @@
-matplotlib==3.10.7
-"mesa[viz]" 
-solara
-networkx

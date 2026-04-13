@@ -9,7 +9,7 @@ Colin Frisch, Marie Leduc, Mourad Hammale
 **Dependencies**
 
 ```bash
-pip install "mesa[viz]" solara matplotlib
+pip install -r requirements.txt
 ```
 
 Requires Python ≥ 3.11.

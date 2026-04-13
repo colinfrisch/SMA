@@ -21,7 +21,7 @@ if __name__ == "__main__":
     print(data.tail(10))
 
     # Plot the number of wastes remaining on the grid over time
-    data.plot(
+    data[["Green Waste", "Yellow Waste", "Red Waste"]].plot(
         title="Waste count over time",
         xlabel="Step",
         ylabel="Number of waste items on grid",
