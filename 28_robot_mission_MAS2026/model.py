@@ -7,7 +7,7 @@ from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 from agents import GreenAgent, YellowAgent, RedAgent
-from objects import Radioactivity, Waste, WasteDisposalZone
+from objects import Radioactivity, WasteDisposalZone, Waste
 
 
 class RobotMission(Model):
@@ -210,113 +210,6 @@ class RobotMission(Model):
                 if dist <= range_dist:
                     result.append(agent)
         return result
-
-    # -------------------Action Execution-------------------
-    def do(self, agent, action: dict) -> dict:
-        """
-        Execute the action chosen by `agent` and return updated percepts.
-
-        The method checks feasibility before applying any change.
-        If the action is not feasible the agent simply receives fresh percepts
-        with no state change.
-
-        Supported action types
-        ----------------------
-        move : {"type": "move", "direction": "north"|"south"|"east"|"west"}
-        pick_up : {"type": "pick_up", "waste": <Waste>}
-        transform : {"type": "transform"}
-        put_down : {"type": "put_down", "waste": <Waste>}
-        wait : {"type": "wait"}
-        """
-        if action is None or action.get("type") == "wait":
-            return self._get_percepts(agent)
-
-        action_type = action.get("type")
-
-        # Move
-        if action_type == "move":
-            direction = action.get("direction")
-            new_pos = self._get_new_pos(agent.pos, direction)
-            if new_pos and self._is_move_feasible(agent, new_pos):
-                self.grid.move_agent(agent, new_pos)
-
-        # Pick up
-        elif action_type == "pick_up":
-            waste = action.get("waste")
-            cell_contents = self.grid.get_cell_list_contents([agent.pos])
-            if waste in cell_contents and isinstance(waste, Waste):
-                self.grid.remove_agent(waste)
-                agent.knowledge["carried_waste"].append(waste)
-
-        # Transform
-        elif action_type == "transform":
-            carried = agent.knowledge.get("carried_waste", [])
-
-            if isinstance(agent, GreenAgent):
-                greens = [w for w in carried if w.waste_type == "green"]
-                if len(greens) >= 2:
-                    for w in greens[:2]:
-                        carried.remove(w)
-                        w.remove()
-                    new_waste = Waste(self, "yellow")
-                    carried.append(new_waste)
-
-            elif isinstance(agent, YellowAgent):
-                yellows = [w for w in carried if w.waste_type == "yellow"]
-                if len(yellows) >= 2:
-                    for w in yellows[:2]:
-                        carried.remove(w)
-                        w.remove()
-                    new_waste = Waste(self, "red")
-                    carried.append(new_waste)
-
-        # Put down
-        elif action_type == "put_down":
-            waste = action.get("waste")
-            carried = agent.knowledge.get("carried_waste", [])
-            if waste in carried:
-                carried.remove(waste)
-                if agent.pos == self.waste_disposal_pos:
-                    waste.remove()
-                    self.waste_disposed_count += 1
-                else:
-                    self.grid.place_agent(waste, agent.pos)
-
-        return self._get_percepts(agent)
-
-    # --------------------Helpers for agent decision-making-------------------
-    def _get_new_pos(self, pos: tuple, direction: str):
-        """Return the grid position one step in `direction` from `pos`."""
-        x, y = pos
-        moves = {"north": (x, y + 1), "south": (x, y - 1),
-                 "east":  (x + 1, y), "west":  (x - 1, y)}
-        return moves.get(direction)
-
-    def _is_move_feasible(self, agent, new_pos: tuple) -> bool:
-        """Check grid bounds and zone access rights."""
-        x, y = new_pos
-        if x < 0 or x >= self.width or y < 0 or y >= self.height:
-            return False
-        if x < self.z1_max:
-            zone = 1
-        elif x < self.z2_max:
-            zone = 2
-        else:
-            zone = 3
-        return zone in agent.allowed_zones
-
-    def _get_percepts(self, agent) -> dict:
-        """
-        Return a dict mapping each adjacent position (Von Neumann and centre)
-        to the list of agent objects present there.
-        """
-        neighborhood = self.grid.get_neighborhood(
-            agent.pos, moore=False, include_center=True
-        )
-        return {
-            pos: self.grid.get_cell_list_contents([pos])
-            for pos in neighborhood
-        }
 
     def _count_waste(self, waste_type: str) -> int:
         """Count waste of `waste_type` that is on the grid (not carried, not alone) """
