@@ -1,6 +1,4 @@
-# Group: 28
-# Date: 16/03/2026
-# Members: FRISCH Colin, LEDUC Marie, HAMMALE Mourad
+"""Main script to run the RobotMission model and visualize results using SolaraViz"""
 
 import matplotlib.patches as mpatches
 
@@ -151,6 +149,14 @@ model_params = {
         "label": "Initial Red Waste",
         "min": 0,
         "max": 30,
+        "step": 1,
+    },
+    "communication_range": {
+        "type": "SliderInt",
+        "value": 10,
+        "label": "Communication Range",
+        "min": 0,
+        "max": 20,
         "step": 1,
     },
     "width":  WIDTH,

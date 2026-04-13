@@ -1,6 +1,4 @@
-# Group: 28
-# Date: 16/03/2026
-# Members: FRISCH Colin, LEDUC Marie, HAMMALE Mourad
+"""Definition of the RobotMission model and its core logic"""
 
 import threading
 
@@ -42,6 +40,7 @@ class RobotMission(Model):
         n_red_waste: int = 0,
         width: int = 30,
         height: int = 10,
+        communication_range: int = 10,
         seed=None,
     ):
         super().__init__(seed=seed)
@@ -50,9 +49,14 @@ class RobotMission(Model):
         self.n_red = n_red
         self.width = width
         self.height = height
+        self.communication_range = communication_range
 
         self.grid = MultiGrid(width, height, torus=False)
         self.running = True
+
+        # Messaging and metrics
+        self.total_messages_sent = 0
+        self.waste_disposed_count = 0
 
         # Zone boundaries (column indices, exclusive upper bound)
         self.z1_max = width // 3
@@ -71,6 +75,7 @@ class RobotMission(Model):
                 "Green Waste": lambda m: m._count_waste("green"),
                 "Yellow Waste": lambda m: m._count_waste("yellow"),
                 "Red Waste": lambda m: m._count_waste("red"),
+                "Total Messages": lambda m: m.total_messages_sent,
             }
         )
 
@@ -157,6 +162,55 @@ class RobotMission(Model):
             agent = RedAgent(self)
             self.grid.place_agent(agent, (x, y))
 
+    # -------------------Messaging system-------------------
+    def broadcast_message(self, sender, msg_type: str, pos: tuple, recipient_type):
+        """
+        Send a message from sender to all recipients of a given type within communication range.
+
+        Parameters
+        ----------
+        sender : Agent
+        msg_type : str
+        pos : tuple
+        recipient_type : class
+        """
+        recipients = self._get_agents_in_range(pos, recipient_type, self.communication_range)
+        message_count = 0
+        for recipient in recipients:
+            if recipient != sender:
+                waste_type = "yellow" if msg_type == "yellow_waste_at" else "red"
+                if pos not in recipient.knowledge.get("known_targets", {}).get(waste_type, []):
+                    if waste_type not in recipient.knowledge["known_targets"]:
+                        recipient.knowledge["known_targets"][waste_type] = []
+                    recipient.knowledge["known_targets"][waste_type].append(pos)
+                    message_count += 1
+        self.total_messages_sent += message_count
+        return message_count
+
+    def _get_agents_in_range(self, pos: tuple, agent_type, range_dist: int):
+        """
+        Get all agents of a given type within distance range_dist from pos.
+
+        Parameters
+        ----------
+        pos : tuple
+        agent_type : class
+        range_dist : int
+
+        Returns
+        -------
+        list : Agents of agent_type within range_dist of pos
+        """
+        result = []
+        x0, y0 = pos
+        for agent in self.agents:
+            if isinstance(agent, agent_type) and agent.pos is not None:
+                x1, y1 = agent.pos
+                dist = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
+                if dist <= range_dist:
+                    result.append(agent)
+        return result
+
     # -------------------Action Execution-------------------
     def do(self, agent, action: dict) -> dict:
         """
@@ -168,11 +222,11 @@ class RobotMission(Model):
 
         Supported action types
         ----------------------
-        move      : {"type": "move", "direction": "north"|"south"|"east"|"west"}
-        pick_up   : {"type": "pick_up", "waste": <Waste>}
+        move : {"type": "move", "direction": "north"|"south"|"east"|"west"}
+        pick_up : {"type": "pick_up", "waste": <Waste>}
         transform : {"type": "transform"}
-        put_down  : {"type": "put_down", "waste": <Waste>}
-        wait      : {"type": "wait"}
+        put_down : {"type": "put_down", "waste": <Waste>}
+        wait : {"type": "wait"}
         """
         if action is None or action.get("type") == "wait":
             return self._get_percepts(agent)
@@ -224,6 +278,7 @@ class RobotMission(Model):
                 carried.remove(waste)
                 if agent.pos == self.waste_disposal_pos:
                     waste.remove()
+                    self.waste_disposed_count += 1
                 else:
                     self.grid.place_agent(waste, agent.pos)
 
@@ -272,6 +327,11 @@ class RobotMission(Model):
 
     # ---------------------Scheduler step-------------------
     def step(self):
+        # Clear known targets each step (messages persist for one step only)
+        for agent in self.agents:
+            if hasattr(agent, 'knowledge') and 'known_targets' in agent.knowledge:
+                agent.knowledge['known_targets'] = {"yellow": [], "red": []}
+        
         # Only robot agents need to act, passive objects (Radioactivity, Waste, WasteDisposalZone) have no behaviour
         for robot_type in (GreenAgent, YellowAgent, RedAgent):
             self.agents_by_type[robot_type].shuffle_do("step")

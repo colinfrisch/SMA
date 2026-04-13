@@ -1,6 +1,4 @@
-# Group: 28
-# Date: 16/03/2026
-# Members: FRISCH Colin, LEDUC Marie, HAMMALE Mourad
+"""Main script to run the RobotMission model and visualize results"""
 
 import matplotlib.pyplot as plt
 from model import RobotMission
