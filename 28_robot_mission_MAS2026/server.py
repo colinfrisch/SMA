@@ -1,3 +1,6 @@
+# Group 28 - Robot Mission MAS 2026
+# Created: 2026-04-13
+# Members: Colin Frisch
 """Main script to run the RobotMission model and visualize results using SolaraViz"""
 
 import matplotlib.patches as mpatches

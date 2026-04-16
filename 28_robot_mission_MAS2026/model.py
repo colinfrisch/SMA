@@ -1,3 +1,6 @@
+# Group 28 - Robot Mission MAS 2026
+# Created: 2026-04-13
+# Members: Colin Frisch
 """Definition of the RobotMission model and its core logic"""
 
 import threading
@@ -161,6 +164,92 @@ class RobotMission(Model):
             y = self.random.randrange(self.height)
             agent = RedAgent(self)
             self.grid.place_agent(agent, (x, y))
+
+    # -------------------Action execution (do)-------------------
+    def do(self, agent, action):
+        """
+        Execute an agent's action after checking feasibility, then return percepts.
+
+        Parameters
+        ----------
+        agent : RobotAgent
+        action : dict with at least a "type" key
+
+        Returns
+        -------
+        dict : percepts mapping neighbouring positions to their cell contents
+        """
+        if action is not None and action.get("type") != "wait":
+            action_type = action.get("type")
+
+            if action_type == "move":
+                new_pos = self._compute_new_pos(agent.pos, action["direction"])
+                if new_pos and self._is_move_feasible(agent, new_pos):
+                    self.grid.move_agent(agent, new_pos)
+
+            elif action_type == "pick_up":
+                waste = action["waste"]
+                cell_contents = self.grid.get_cell_list_contents([agent.pos])
+                if waste in cell_contents and isinstance(waste, Waste):
+                    self.grid.remove_agent(waste)
+                    agent.knowledge["carried_waste"].append(waste)
+
+            elif action_type == "transform":
+                agent._do_transform()
+
+            elif action_type == "put_down":
+                waste = action["waste"]
+                carried = agent.knowledge["carried_waste"]
+                if waste in carried:
+                    carried.remove(waste)
+                    if agent.pos == self.waste_disposal_pos:
+                        waste.remove()
+                        self.waste_disposed_count += 1
+                    else:
+                        self.grid.place_agent(waste, agent.pos)
+
+            # Handle messaging if included in the action
+            if "message" in action:
+                msg = action["message"]
+                recipient_map = {"yellow": YellowAgent, "red": RedAgent}
+                recipient_type = recipient_map.get(msg["recipient"])
+                if recipient_type:
+                    self.broadcast_message(
+                        agent, msg["msg_type"], agent.pos, recipient_type
+                    )
+
+        # Return percepts: adjacent tiles and their contents
+        neighborhood = self.grid.get_neighborhood(
+            agent.pos, moore=False, include_center=True
+        )
+        return {
+            pos: self.grid.get_cell_list_contents([pos])
+            for pos in neighborhood
+        }
+
+    @staticmethod
+    def _compute_new_pos(pos, direction):
+        x, y = pos
+        moves = {
+            "north": (x, y + 1),
+            "south": (x, y - 1),
+            "east": (x + 1, y),
+            "west": (x - 1, y),
+        }
+        return moves.get(direction)
+
+    def _is_move_feasible(self, agent, new_pos):
+        """Check grid bounds and zone access rights."""
+        x, y = new_pos
+        if x < 0 or x >= self.width or y < 0 or y >= self.height:
+            return False
+        if x < self.z1_max:
+            zone = 1
+        elif x < self.z2_max:
+            zone = 2
+        else:
+            zone = 3
+        return zone in agent.allowed_zones
 
     # -------------------Messaging system-------------------
     def broadcast_message(self, sender, msg_type: str, pos: tuple, recipient_type):

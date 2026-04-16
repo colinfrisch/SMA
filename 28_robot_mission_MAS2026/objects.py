@@ -1,3 +1,6 @@
+# Group 28 - Robot Mission MAS 2026
+# Created: 2026-04-13
+# Members: Colin Frisch
 """Definition of passive agent types that have no decision logic"""
 
 import random
