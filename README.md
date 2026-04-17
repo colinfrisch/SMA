@@ -217,7 +217,9 @@ Key findings:
 ├── objects.py
 ├── run.py
 ├── server.py
-└── batch_run.py
+├── batch_run.py
+└── images/
+    └── batch_*.png
 ```
 
 ---
@@ -234,17 +236,17 @@ Key findings:
 
 ## BONUS : Batch run analysis
 
-Run `python batch_run.py` to reproduce these experiments (30 runs per data point, 300 steps each, 20 initial green wastes unless stated otherwise). Plots are saved as `batch_*.png`.
+Run `python batch_run.py` to reproduce these experiments (30 runs per data point, 300 steps each, 20 initial green wastes unless stated otherwise). Plots are saved in the `images/` folder.
 
 ### 1. Average waste dynamics
 
-![Waste dynamics](28_robot_mission_MAS2026/batch_dynamics.png)
+![Waste dynamics](28_robot_mission_MAS2026/images/batch_dynamics.png)
 
 Green waste decreases monotonically as GreenAgents collect it. Yellow waste rises briefly (transformation lag) then falls as YellowAgents consume it. Red waste rises last and plateaus : red waste accumulates because the pipeline produces it faster than the single disposal zone can absorb it. The shaded band (±1 std) shows moderate inter-run variance, especially for the later pipeline stages where stochastic delays compound.
 
 ### 2. Performance vs robot count
 
-![Robot count](28_robot_mission_MAS2026/batch_robot_count.png)
+![Robot count](28_robot_mission_MAS2026/images/batch_robot_count.png)
 
 | Robots/type | Disposed (mean) | Remaining (mean) |
 |---|---|---|
@@ -258,13 +260,13 @@ Performance peaks at 5–7 robots per type, then drops with 10. This is a conges
 
 ### 3. Impact of communication range
 
-![Communication](28_robot_mission_MAS2026/batch_communication.png)
+![Communication](28_robot_mission_MAS2026/images/batch_communication.png)
 
 Communication improves disposal by approximately 70% (1.3 → 2.2 disposed) going from range=0 to range=10. Beyond range=10, gains saturate : the grid is only 30 cells wide, so range=10 already covers most of the relevant area. The high variance (error bars) shows that communication helps on average but does not eliminate the stochastic nature of the system.
 
 ### 4. Distribution over 100 runs
 
-![Distribution](28_robot_mission_MAS2026/batch_distribution.png)
+![Distribution](28_robot_mission_MAS2026/images/batch_distribution.png)
 
 - Disposed: mean=2.2, std=1.0, range [0, 5]. The mode is 2–3, matching the theoretical pipeline ratio (20 green → 10 yellow → 5 red → 5 disposed max; real throughput is lower due to pairing failures and spatial search time).
 - Remaining: mean=5.2, std=1.8. The right tail (8–11 remaining) corresponds to runs where agents get stuck carrying unpaired waste : a structural deadlock inherent to the greedy pairing strategy.

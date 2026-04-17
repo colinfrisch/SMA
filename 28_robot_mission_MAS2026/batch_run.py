@@ -52,7 +52,7 @@ def experiment_dynamics():
     ax.set_title(f"Average waste dynamics ({N_RUNS} runs, 20 initial green)")
     ax.legend()
     fig.tight_layout()
-    fig.savefig("batch_dynamics.png", dpi=150)
+    fig.savefig("images/batch_dynamics.png", dpi=150)
     plt.close(fig)
     print("  Saved batch_dynamics.png")
 
@@ -79,7 +79,7 @@ def experiment_robot_count():
     ax1.legend(loc="upper left"); ax2.legend(loc="upper right")
     ax1.set_title("Performance vs robot count (20 initial green)")
     fig.tight_layout()
-    fig.savefig("batch_robot_count.png", dpi=150)
+    fig.savefig("images/batch_robot_count.png", dpi=150)
     plt.close(fig)
     print("  Saved batch_robot_count.png")
 
@@ -100,7 +100,7 @@ def experiment_communication():
     ax.set_ylabel("Waste disposed (after 300 steps)")
     ax.set_title("Impact of communication range (20 initial green)")
     fig.tight_layout()
-    fig.savefig("batch_communication.png", dpi=150)
+    fig.savefig("images/batch_communication.png", dpi=150)
     plt.close(fig)
     print("  Saved batch_communication.png")
 
@@ -123,7 +123,7 @@ def experiment_distribution():
     ax2.set_title("Remaining (100 runs)"); ax2.legend()
 
     fig.tight_layout()
-    fig.savefig("batch_distribution.png", dpi=150)
+    fig.savefig("images/batch_distribution.png", dpi=150)
     plt.close(fig)
     print(f"  disposed: mean={np.mean(disposed):.1f}, std={np.std(disposed):.1f}")
     print(f"  remaining: mean={np.mean(remaining):.1f}, std={np.std(remaining):.1f}")
