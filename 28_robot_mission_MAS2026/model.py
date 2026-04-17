@@ -130,17 +130,17 @@ class RobotMission(Model):
             self.grid.place_agent(waste, (x, y))
 
     def _setup_initial_yellow_waste(self, n_yellow_waste: int):
-        """Scatter yellow waste randomly across zones z1 and z2."""
+        """Scatter yellow waste randomly across zone z2."""
         for _ in range(n_yellow_waste):
-            x = self.random.randrange(self.z2_max)
+            x = self.random.randrange(self.z1_max, self.z2_max)
             y = self.random.randrange(self.height)
             waste = Waste(self, "yellow")
             self.grid.place_agent(waste, (x, y))
 
     def _setup_initial_red_waste(self, n_red_waste: int):
-        """Scatter red waste randomly across zones z1, z2, and z3."""
+        """Scatter red waste randomly across zone z3."""
         for _ in range(n_red_waste):
-            x = self.random.randrange(self.width)
+            x = self.random.randrange(self.z2_max, self.width)
             y = self.random.randrange(self.height)
             waste = Waste(self, "red")
             self.grid.place_agent(waste, (x, y))
